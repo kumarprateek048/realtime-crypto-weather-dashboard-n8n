@@ -18,11 +18,9 @@ _**n8n Workflow Dashboard**_
 
 _**This is how your dynamic dashboard appears when received daily in your Gmail inbox:**_
 
-![Gmail Dashboard Example 1] 
-(Gmail_dashboard.png)
+![Gmail Dashboard Example 1](Gmail_dashboard.png)
 
-![Gmail Dashboard Example 2]
-(Dashboard_gmail2.png)
+![Gmail Dashboard Example 2](Dashboard_gmail2.png)
 
 ---
 
