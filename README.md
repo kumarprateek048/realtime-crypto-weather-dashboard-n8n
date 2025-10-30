@@ -8,7 +8,18 @@ This project demonstrates an automated workflow that collects and reports on liv
 
 ## Preview
 
+_**n8n Workflow Dashboard**_
+
 ![Workflow Dashboard Preview](Dashboard.png)
+
+---
+
+## Email Example
+
+_**This is how your dynamic dashboard appears when received daily in your Gmail inbox:**_
+
+![Gmail Dashboard Example 1](Gmail_dashbaord.png)
+![Gmail Dashboard Example 2](Dashboard_gmail2.png)
 
 ---
 
