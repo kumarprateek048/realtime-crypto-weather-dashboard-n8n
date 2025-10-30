@@ -6,6 +6,12 @@ This project demonstrates an automated workflow that collects and reports on liv
 
 ---
 
+## Preview
+
+![Workflow Dashboard Preview](Dashboard.png)
+
+---
+
 ## Why This Approach?
 
 - **Real business value:** Transforms raw API feeds into digestible daily reports — a jumpstart for data-driven decisions.
@@ -92,4 +98,3 @@ If/when OpenAI (GPT) is integrated, the workflow can automatically summarize tre
 ---
 
 *Want to automate your data reporting? Clone this repo, import the workflow JSON to n8n, and start your mornings smarter!*
-
