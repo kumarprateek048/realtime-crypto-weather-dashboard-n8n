@@ -1,0 +1,533 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 7
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -608,
+        -208
+      ],
+      "id": "448949b0-8885-4b9a-ad7e-33be408dabf6",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "url": "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=usd&include_24hr_change=true",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -352,
+        -208
+      ],
+      "id": "7a6345ad-1691-4026-932a-8d9ed9001375",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "02bb8e98-150e-477a-838b-06d5fb244045",
+              "name": "=chatInput",
+              "value": "=Bitcoin: ${{ $json.bitcoin.usd }} ({{ $json.bitcoin.usd_24h_change }}% 24h), Ethereum: ${{ $json.ethereum.usd }} ({{ $json.ethereum.usd_24h_change }}% 24h)",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -112,
+        -208
+      ],
+      "id": "eb2c119c-1329-48b4-9375-a134f97c550a",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $json.chatInput;\n\n// Use regex to extract BTC and ETH data\nconst btcMatch = input.match(/Bitcoin: \\$([\\d.,]+) \\(([-\\d.]+)% 24h\\)/);\nconst ethMatch = input.match(/Ethereum: \\$([\\d.,]+) \\(([-\\d.]+)% 24h\\)/);\n\nif (!btcMatch || !ethMatch) {\n  throw new Error(\"BTC/ETH data not found in chatInput\");\n}\n\nconst btc = parseFloat(btcMatch[1].replace(/,/g, ''));\nconst btcChange = parseFloat(btcMatch[2]);\nconst eth = parseFloat(ethMatch[1].replace(/,/g, ''));\nconst ethChange = parseFloat(ethMatch[2]);\n\nfunction formatChange(val) {\n  return (val >= 0 ? '+' : '') + val.toFixed(2);\n}\n\nlet trend, advice;\n\nif (btcChange > 0 && ethChange > 0) {\n  trend = \"Both Bitcoin and Ethereum are up in the last 24 hours.\";\n  advice = \"Market is showing bullish signals. Consider monitoring for possible profit-taking opportunities, but remain cautious of sudden reversals.\";\n} else if (btcChange < 0 && ethChange < 0) {\n  trend = \"Both Bitcoin and Ethereum have declined in the last 24 hours.\";\n  advice = \"Bearish momentum detected. Consider risk management strategies or waiting for a clearer trend before making new investments.\";\n} else if (btcChange > 0 && ethChange < 0) {\n  trend = \"Bitcoin is up, but Ethereum is down in the last 24 hours.\";\n  advice = \"The market is mixed. Diversification or watching ETH for a reversal could be wise.\";\n} else if (btcChange < 0 && ethChange > 0) {\n  trend = \"Bitcoin is down, but Ethereum is up in the last 24 hours.\";\n  advice = \"The market is mixed. Monitor BTC for support or ETH for sustained strength.\";\n} else {\n  trend = \"The market is relatively flat today.\";\n  advice = \"Patience may be key; consider waiting for clearer trends before acting.\";\n}\n\nconst summary = `\nBTC: $${btc} (${formatChange(btcChange)}% 24h)\nETH: $${eth} (${formatChange(ethChange)}% 24h)\nTrend: ${trend}\nTip: ${advice}\n`.trim();\n\nreturn {\n  btc,\n  btcChange,\n  eth,\n  ethChange,\n  summary\n};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        96,
+        -208
+      ],
+      "id": "1600e01f-2721-41ae-a65d-c0d30cb90e14",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1ZKmdZCizRQd-7OnZNBrGX52og0zq-FptNIblKTrBKAA",
+          "mode": "list",
+          "cachedResultName": "Untitled spreadsheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZKmdZCizRQd-7OnZNBrGX52og0zq-FptNIblKTrBKAA/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZKmdZCizRQd-7OnZNBrGX52og0zq-FptNIblKTrBKAA/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "BTC": "={{ $json.btc }}",
+            "BTC Change": "={{ $json.btcChange }}",
+            "ETH": "={{ $json.eth }}",
+            "ETH Change": "={{ $json.ethChange }}",
+            "Summary": "={{ $json.summary }}",
+            "Date": "={{ $now.format('MMMM DD, YYYY HH:mm') }}"
+          },
+          "matchingColumns": [
+            "Summary"
+          ],
+          "schema": [
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "BTC",
+              "displayName": "BTC",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "BTC Change",
+              "displayName": "BTC Change",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "ETH",
+              "displayName": "ETH",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "ETH Change",
+              "displayName": "ETH Change",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Summary",
+              "displayName": "Summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Big Move",
+              "displayName": "Big Move",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        288,
+        -208
+      ],
+      "id": "2250fe06-6f9a-47ec-bdd8-4e273a7cb31e",
+      "name": "Append or update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "abVNGY6xDI8qrtYS",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "kumar.prateek048@gmail.com",
+        "subject": "=Daily Crypto and weather forecast Dashboard for {{ $now.format('MMMM DD') }}",
+        "message": "={{ $json.HtmlMessage }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1584,
+        208
+      ],
+      "id": "da9878ce-a443-476f-a2a3-fa822ca321b2",
+      "name": "Send a message",
+      "webhookId": "00be8817-1b4b-4c1d-a837-2affaf270232",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "okOJIhEJzZht2ZiK",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1ZKmdZCizRQd-7OnZNBrGX52og0zq-FptNIblKTrBKAA",
+          "mode": "list",
+          "cachedResultName": "Untitled spreadsheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZKmdZCizRQd-7OnZNBrGX52og0zq-FptNIblKTrBKAA/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZKmdZCizRQd-7OnZNBrGX52og0zq-FptNIblKTrBKAA/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        544,
+        -208
+      ],
+      "id": "8699305c-fc8d-4851-bc3f-68e369122c3c",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "abVNGY6xDI8qrtYS",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const chartConfig = {\n  type: 'line',\n  data: {\n    labels: $json.chartLabels,\n    datasets: [\n      {\n        label: 'BTC',\n        borderColor: 'orange',\n        fill: false,\n        data: $json.chartBTC,\n      },\n      {\n        label: 'ETH',\n        borderColor: 'purple',\n        fill: false,\n        data: $json.chartETH,\n      }\n    ]\n  },\n  options: {\n    title: {\n      display: true,\n      text: 'BTC & ETH – Last 7 Days'\n    }\n  }\n};\n\nreturn [{\n  json: {\n    data: 'https://quickchart.io/chart?c=' + encodeURIComponent(JSON.stringify(chartConfig))\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1008,
+        -208
+      ],
+      "id": "8998ff57-f3c5-4825-b889-3f7b5201058b",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "numberInputs": 4
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1168,
+        192
+      ],
+      "id": "373bbb83-b2e8-4240-98da-da7835690dd5",
+      "name": "Merge",
+      "alwaysOutputData": false,
+      "executeOnce": false,
+      "retryOnFail": false
+    },
+    {
+      "parameters": {
+        "jsCode": "let crypto = null, chart = null, weather = null, weatherChart = null;\n\n// Identify the crypto, chart, and weather JSON objects\nfor (const item of items) {\n  if (\"BTC\" in item.json && \"ETH\" in item.json) crypto = item.json;\n  else if (\"data\" in item.json) chart = item.json;\n  else if (\"weather5d\" in item.json) weather = item.json;\n  else if (\"weatherChartUrl\" in item.json) weatherChart = item.json;\n}\n\n// Defaults\nconst city = weather ? weather.City || \"\" : \"\";\nconst country = weather ? weather.Country || \"\" : \"\";\n\n// Extract today's and tomorrow's forecast for highlight\nlet dateTime = \"\", temperature = \"\", condition = \"\";\nif (weather && Array.isArray(weather.weather5d) && weather.weather5d.length > 0) {\n  dateTime = weather.weather5d[0].date || \"\";\n  temperature = weather.weather5d[0].temp || \"\";\n  condition = weather.weather5d[0].condition || \"\";\n}\n\n// --- Helpers ---\nfunction prettyDate(isoString) {\n  if (!isoString) return \"\";\n  const date = new Date(isoString.replace(\" \", \"T\"));\n  return date.toLocaleDateString(\"en-US\", { month: \"short\", day: \"numeric\", year: \"numeric\" });\n}\nfunction money(n) {\n  return Number(n).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});\n}\nfunction weatherIcon(condition) {\n  const c = (condition || \"\").toLowerCase();\n  if (c.includes(\"rain\")) return \"🌧️\";\n  if (c.includes(\"cloud\")) return \"☁️\";\n  if (c.includes(\"clear\")) return \"☀️\";\n  return \"🌡️\";\n}\n\n// ---- Date for Title and Subject ----\n// Get today's date in \"October 30, 2025\" format\nconst todayPretty = new Date().toLocaleDateString(\"en-US\", { month: \"long\", day: \"numeric\", year: \"numeric\" });\n\n// --- Section Render Functions ---\n\nfunction renderCryptoSnapshot(crypto) {\n  if (!crypto) return \"<p>No crypto data.</p>\";\n  const btc = Number(crypto.BTC);\n  const btcChange = parseFloat(crypto[\"BTC Change\"]);\n  const eth = Number(crypto.ETH);\n  const ethChange = parseFloat(crypto[\"ETH Change\"]);\n\n  // Trend logic\n  let trendText = \"\";\n  let tip = \"\";\n  if (btcChange < 0 && ethChange < 0) {\n    trendText = \"Both Bitcoin and Ethereum have declined in the last 24 hours.\";\n    tip = \"Bearish momentum detected. Consider risk management strategies or waiting for a clearer trend before making new investments.\";\n  } else if (btcChange > 0 && ethChange > 0) {\n    trendText = \"Both Bitcoin and Ethereum have appreciated in the last 24 hours.\";\n    tip = \"Bullish momentum! Consider scaling in or reviewing your take-profit levels, but always manage risk.\";\n  } else {\n    trendText = \"Bitcoin and Ethereum have moved in different directions in the last 24 hours.\";\n    tip = \"Mixed signals. Monitor market news and be prepared for volatility.\";\n  }\n  return `\n    <h3 style=\"color:#1867c0; margin-bottom:8px; margin-top:0;\">Crypto Snapshot</h3>\n    <ul style=\"margin-top:0;margin-bottom:10px;\">\n      <li>Bitcoin: $${money(btc)} (${btcChange.toFixed(2)}% 24h)</li>\n      <li>Ethereum: $${money(eth)} (${ethChange.toFixed(2)}% 24h)</li>\n    </ul>\n    <div style=\"margin-bottom:8px;\">\n      BTC: $${money(btc)} (${btcChange.toFixed(2)}% 24h) &nbsp; \n      ETH: $${money(eth)} (${ethChange.toFixed(2)}% 24h)\n    </div>\n    <div style=\"margin:8px 0 0 0;\"><b>Trend:</b> ${trendText}</div>\n    <div style=\"color:#417505; margin:4px 0 0 0;\"><b>Tip:</b> ${tip}</div>\n  `;\n}\n\nfunction renderCryptoChart(chart) {\n  if (!chart || !chart.data) return \"\";\n  return `\n    <h3 style=\"color:#1867c0; margin-bottom:8px; margin-top:16px;\">Crypto 7-Day Chart</h3>\n    <div>\n      <img src=\"${chart.data}\" alt=\"Crypto 7-Day Chart\" style=\"max-width:600px; width:100%; border:1px solid #eee; border-radius:7px;\">\n    </div>\n  `;\n}\n\n// -- Weather section only a subtle location label! --\nfunction renderWeatherForecast(weather, weather5dHtml) {\n  if (!weather) return \"<p>No weather data.</p>\";\n  return `\n    <div style=\"color:#555; margin-bottom:8px; font-size:1em;\">\n      Location: ${weather.City}, ${weather.Country}\n    </div>\n    ${weather5dHtml}\n  `;\n}\n\nfunction renderWeatherChart(weatherChart) {\n  if (!weatherChart || !weatherChart.weatherChartUrl) return \"\";\n  return `\n    <h3 style=\"color:#1867c0; margin-bottom:8px; margin-top:16px;\">5-Day Temperature Graph</h3>\n    <div>\n      <img src=\"${weatherChart.weatherChartUrl}\" alt=\"5-Day Weather Chart\" style=\"max-width:600px; width:100%; border:1px solid #eee; border-radius:7px;\">\n    </div>\n  `;\n}\n\nfunction renderSummary(fullSummary) {\n  return `\n    <h3 style=\"color:#1867c0; margin-bottom:8px; margin-top:16px;\">Summary</h3>\n    <div style=\"white-space:pre-line; font-family:inherit;\">\n      ${fullSummary}\n    </div>\n  `;\n}\n\n// --- SUMMARY TEXTS ---\nconst cryptoSummary = crypto\n  ? `Crypto:\\n• Bitcoin: $${money(crypto.BTC)} (${parseFloat(crypto[\"BTC Change\"]).toFixed(2)}% 24h)\\n• Ethereum: $${money(crypto.ETH)} (${parseFloat(crypto[\"ETH Change\"]).toFixed(2)}% 24h)`\n  : \"Crypto data missing.\";\n\nconst weatherSummary = (weather && Array.isArray(weather.weather5d) && weather.weather5d[0])\n  ? `Weather for ${city}${country ? ', ' + country : ''} on ${prettyDate(weather.weather5d[0].date)}:\\n• ${parseFloat(weather.weather5d[0].temp).toFixed(1)} °C, ${weather.weather5d[0].condition} ${weatherIcon(weather.weather5d[0].condition)}`\n  : \"Weather data missing.\";\n\nconst fullSummary = cryptoSummary + \"\\n\\n\" + weatherSummary;\n\n// --- Weather Table with Highlights ---\nlet weather5dHtml = '';\nif (weather && Array.isArray(weather.weather5d)) {\n  weather5dHtml = `<table border=\"1\" cellpadding=\"6\" cellspacing=\"0\" style=\"border-collapse:collapse; min-width:320px;\"><thead>\n      <tr style=\"background:#f2f2f2;\">\n        <th>Date</th>\n        <th>Temperature (°C)</th>\n        <th>Condition</th>\n      </tr>\n    </thead><tbody>`;\n  for (let i = 0; i < weather.weather5d.length; i++) {\n    const day = weather.weather5d[i];\n    let label = prettyDate(day.date);\n    if (i === 0) label = \"<b>Today</b> (\" + prettyDate(day.date) + \")\";\n    if (i === 1) label = \"<b>Tomorrow</b> (\" + prettyDate(day.date) + \")\";\n    let style = (i === 0 || i === 1)\n      ? 'font-weight:bold;background:#e6f7ff;'\n      : '';\n    weather5dHtml += `<tr style=\"${style}\">` +\n      `<td>${label}</td>` +\n      `<td style=\"text-align:center;\">${parseFloat(day.temp).toFixed(1)}</td>` +\n      `<td>${day.condition} ${weatherIcon(day.condition)}</td>` +\n      `</tr>`;\n  }\n  weather5dHtml += '</tbody></table>';\n}\n\n// ---- Final HTML message assembled ----\nconst htmlMessage = `\n<div style=\"max-width: 640px; margin: auto; font-family: Arial, sans-serif; color: #222;\">\n  <h2 style=\"margin-bottom:8px;\">Crypto &amp; Weather Dashboard for ${todayPretty}</h2>\n  <hr style=\"border:none; border-top:2px solid #eee; margin-bottom:24px;\">\n\n  <div style=\"margin-bottom:24px;\">\n    ${renderCryptoSnapshot(crypto)}\n  </div>\n  <div style=\"margin-bottom:24px;\">\n    ${renderCryptoChart(chart)}\n  </div>\n\n  <!-- PREMIUM DATA SEPARATOR AS SECTION HEADER -->\n  <div style=\"margin:32px 0 32px 0; text-align:center; display:flex; align-items:center;\">\n    <div style=\"flex:1; border-top:2px solid #e0e0e0;\"></div>\n    <h3 style=\"flex:0 0 auto; margin:0 16px; color:#1867c0; font-weight:700; letter-spacing:1px; font-size:1.17em; line-height:1;\">\n      📰 Weather Data Report\n    </h3>\n    <div style=\"flex:1; border-top:2px solid #e0e0e0;\"></div>\n  </div>\n  <!-- /PREMIUM DATA SEPARATOR -->\n\n  <div style=\"margin-bottom:24px;\">\n    ${renderWeatherForecast(weather, weather5dHtml)}\n  </div>\n  <div style=\"margin-bottom:24px;\">\n    ${renderWeatherChart(weatherChart)}\n  </div>\n  <div style=\"margin-bottom:24px;\">\n    ${renderSummary(fullSummary)}\n  </div>\n\n  <div style=\"margin-top:32px; font-size:13px; color:#888;\">\n    <em>This email was sent automatically with n8n – <a href=\"https://n8n.io\" style=\"color:#888;\" target=\"_blank\">n8n.io</a></em>\n  </div>\n</div>\n`;\n\n// --- Final result object ---\nreturn [\n  {\n    json: {\n      ...(crypto || {}),\n      ...(weather || {}),\n      ...(chart || {}),\n      ...(weatherChart || {}),\n      DateTime: dateTime,\n      Temperature: temperature,\n      Weather: condition,\n      FullSummary: fullSummary,\n      Weather5dHtml: weather5dHtml,\n      HtmlMessage: htmlMessage,\n      ReportDate: todayPretty // optional: for email subject if needed\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1360,
+        208
+      ],
+      "id": "258b612a-780d-4416-8d83-63f683cb3ad6",
+      "name": "Code in JavaScript2"
+    },
+    {
+      "parameters": {
+        "jsCode": "const labels = [];\nconst btc = [];\nconst eth = [];\n\n// Reverse for chronological order, take ONLY last 7 entries\nconst input = items.reverse().slice(0, 7);\n\nfor (const item of input) {\n  // Example Date: \"October Oct 29, 2025, YYYY 11:49\"\n  let dateRaw = (item.json.Date || '').trim();\n  let label = dateRaw; // fallback\n\n  // Try to extract short month and day via regexp\n  // Matches e.g. \"October Oct 29, 2025\"\n  // Groups: [1]=long month, [2]=short month, [3]=day (number)\n  const match = dateRaw.match(/^[A-Za-z]+\\s([A-Za-z]+)\\s(\\d+),/);\n\n  if (match) {\n    label = `${match[1]} ${match[2]}`; // e.g. \"Oct 29\"\n  }\n\n  labels.push(label);\n  btc.push(Number(item.json.BTC));\n  eth.push(Number(item.json.ETH));\n}\n\nreturn [{\n  json: {\n    chartLabels: labels,\n    chartBTC: btc,\n    chartETH: eth\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        752,
+        -208
+      ],
+      "id": "bbbb2e86-491a-4b26-9326-de920df1d461",
+      "name": "Code in JavaScript3"
+    },
+    {
+      "parameters": {
+        "operation": "5DayForecast",
+        "cityName": "Riga"
+      },
+      "type": "n8n-nodes-base.openWeatherMap",
+      "typeVersion": 1,
+      "position": [
+        -384,
+        240
+      ],
+      "id": "14b74e14-95f4-422c-9134-605a09bd47bb",
+      "name": "OpenWeatherMap",
+      "credentials": {
+        "openWeatherMapApi": {
+          "id": "BtwtM0yxupgiYbup",
+          "name": "OpenWeatherMap account 5"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Extract forecast entries and city info\nconst list = items[0].json.list || [];\nconst cityObj = items[0].json.city || {};\nconst cityName = cityObj.name ?? \"\";\nconst country = cityObj.country ?? \"\";\n\n// 2. Group entries by day (YYYY-MM-DD)\nconst days = {}; // { '2025-10-31': [entry, entry, ...], ... }\nfor (const entry of list) {\n  const date = entry.dt_txt;\n  if (!date) continue;\n  const day = date.split(' ')[0];\n  if (!days[day]) days[day] = [];\n  days[day].push(entry);\n}\n\n// 3. For each day, select \"15:00:00\" entry, or else first available\nconst sortedDays = Object.keys(days).sort();\nconst results = [];\nfor (const day of sortedDays) {\n  const entries = days[day];\n  // Find \"15:00:00\" if it exists, else take first\n  const pick = entries.find(e => e.dt_txt.endsWith(\"15:00:00\")) || entries[0];\n  results.push({\n    date: pick.dt_txt,\n    temp: pick.main.temp,\n    condition: pick.weather[0].description\n  });\n  if (results.length >= 5) break;\n}\n\n// 4. Assemble output\nreturn [\n  {\n    json: {\n      City: cityName,\n      Country: country,\n      weather5d: results\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        112,
+        240
+      ],
+      "id": "51db4896-d4af-46bc-ab0f-334c32a1c300",
+      "name": "Code in JavaScript4"
+    },
+    {
+      "parameters": {
+        "jsCode": "const days = $json.weather5d || [];\nconst labels = days.map(d => {\n  const dt = new Date(d.date.replace(' ', 'T'));\n  return dt.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });\n});\nconst temps = days.map(d => parseFloat(d.temp));\n\nconst chartConfig = {\n  type: \"line\",\n  data: {\n    labels: labels,\n    datasets: [{\n      label: \"Temperature (°C)\",\n      data: temps,\n      borderColor: \"rgba(44,123,204,1)\",\n      backgroundColor: \"rgba(44,123,204,0.15)\",\n      fill: true,\n      pointRadius: 5,\n      pointBackgroundColor: \"rgba(44,123,204,1)\"\n    }]\n  },\n  options: {\n    title: { display: true, text: \"5-Day Temperature Forecast\" },\n    legend: { display: false },\n    scales: {\n      y: { beginAtZero: false }\n    }\n  }\n};\n\nreturn [{\n  json: {\n    weatherChartUrl: 'https://quickchart.io/chart?c=' + encodeURIComponent(JSON.stringify(chartConfig))\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        272,
+        400
+      ],
+      "id": "078c8fe3-f354-437a-8cbe-bf042c8574b7",
+      "name": "Code in JavaScript5"
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "OpenWeatherMap",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Append or update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append or update row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript2": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript3": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenWeatherMap": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript4": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 2
+          },
+          {
+            "node": "Code in JavaScript5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript5": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 3
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {
+    "Schedule Trigger": [
+      {
+        "timestamp": "2025-10-28T13:50:52.209+02:00",
+        "Readable date": "October 28th 2025, 1:50:52 pm",
+        "Readable time": "1:50:52 pm",
+        "Day of week": "Tuesday",
+        "Year": "2025",
+        "Month": "October",
+        "Day of month": "28",
+        "Hour": "13",
+        "Minute": "50",
+        "Second": "52",
+        "Timezone": "Europe/Riga (UTC+02:00)"
+      }
+    ]
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "3e40a5b107a8e982806e5482fe53527671018e31b1d35c24cef5eede8dfde563"
+  }
+}
